@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Emergencia Hídrica — Municipalidad de Esquina</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+  :root {
+    --azul:#1a3a5c;--azul-claro:#2563a8;--agua:#3b82f6;--agua-light:#dbeafe;
+    --naranja:#ea580c;--gris:#64748b;--gris-claro:#f1f5f9;--borde:#cbd5e1;
+    --verde:#16a34a;--rojo:#dc2626;--amarillo:#d97706;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:#e8f0f9;min-height:100vh;padding-bottom:0;}
+
+  /* FOOTER CEM */
+  .footer-cem{margin-top:32px;background:var(--azul);color:white;padding:22px 20px 30px;}
+  .footer-inner{max-width:620px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;}
+  .footer-logo{display:flex;align-items:center;gap:12px;}
+  .footer-logo-icon{width:38px;height:38px;background:rgba(255,255,255,.12);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+  .footer-logo-text{text-align:left;}
+  .footer-logo-text strong{display:block;font-size:13.5px;font-weight:700;letter-spacing:.2px;}
+  .footer-logo-text span{font-size:11px;opacity:.6;font-weight:400;}
+  .footer-divider{width:100%;height:1px;background:rgba(255,255,255,.12);}
+  .footer-meta{font-size:11px;opacity:.45;letter-spacing:.3px;font-family:'DM Mono',monospace;}
+
+  .header{background:var(--azul);color:white;padding:16px 20px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.25);}
+  .header-inner{max-width:620px;margin:0 auto;display:flex;align-items:center;gap:14px;}
+  .header-icon{width:42px;height:42px;background:rgba(255,255,255,.12);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+  .header-text h1{font-size:16px;font-weight:700;line-height:1.2;}
+  .header-text p{font-size:11.5px;opacity:.7;margin-top:1px;}
+  .badge-alerta{margin-left:auto;background:var(--naranja);color:white;font-size:10px;font-weight:700;padding:4px 9px;border-radius:20px;letter-spacing:.5px;text-transform:uppercase;flex-shrink:0;}
+
+  .wrapper{max-width:620px;margin:0 auto;padding:20px 16px 0;}
+  .seccion{background:white;border-radius:14px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);overflow:visible;}
+  .seccion-header{display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid var(--gris-claro);background:var(--gris-claro);border-radius:14px 14px 0 0;}
+  .seccion-header .emoji{font-size:17px;}
+  .seccion-header h2{font-size:12.5px;font-weight:700;color:var(--azul);text-transform:uppercase;letter-spacing:.6px;}
+  .seccion-body{padding:18px 18px 14px;overflow:visible;}
+
+  .campo-grupo{margin-bottom:14px;position:relative;}
+  .campo-grupo:last-child{margin-bottom:0;}
+  label{display:block;font-size:11.5px;font-weight:600;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+  label .req{color:var(--naranja);margin-left:2px;}
+
+  input[type=text],input[type=tel],input[type=number],select,textarea{
+    width:100%;padding:11px 14px;border:1.5px solid var(--borde);border-radius:9px;
+    font-family:'DM Sans',sans-serif;font-size:16px;color:#1e293b;background:white;
+    transition:border-color .18s,box-shadow .18s;
+    -webkit-appearance:none;-moz-appearance:none;appearance:none;
+    -webkit-border-radius:9px;
+  }
+  /* iOS fix: evitar zoom al focus en inputs */
+  @media screen and (-webkit-min-device-pixel-ratio:0){
+    select,textarea,input{font-size:16px;}
+  }
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--agua);box-shadow:0 0 0 3px rgba(59,130,246,.15);}
+  textarea{resize:vertical;min-height:88px;line-height:1.5;}
+  /* iOS: fix select arrow */
+  select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2364748b' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
+
+  /* AUTOCOMPLETE */
+  .autocomplete-wrapper{position:relative;z-index:100;}
+  .clear-btn{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--gris);cursor:pointer;font-size:16px;padding:2px 4px;display:none;line-height:1;z-index:2;}
+  .dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:white;border:1.5px solid var(--agua);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);z-index:9999;max-height:230px;overflow-y:auto;display:none;}
+  .dropdown.visible{display:block;}
+  .dropdown-item{padding:11px 15px;cursor:pointer;font-size:14px;color:#1e293b;border-bottom:1px solid var(--gris-claro);transition:background .1s;}
+  .dropdown-item:last-child{border-bottom:none;}
+  .dropdown-item:hover,.dropdown-item:active{background:var(--agua-light);}
+  .dropdown-item mark{background:none;color:var(--azul-claro);font-weight:700;}
+  .dropdown-empty{padding:12px 15px;color:var(--gris);font-size:14px;font-style:italic;}
+
+  /* NIVEL AGUA */
+  .nivel-grupo{display:flex;gap:10px;}
+  .nivel-btn{flex:1;padding:11px 8px;border-radius:9px;border:2px solid var(--borde);background:white;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;text-align:center;transition:all .15s;color:var(--gris);}
+  .nivel-btn .nivel-icon{display:block;font-size:20px;margin-bottom:3px;}
+  .nivel-btn[data-nivel=bajo].selected{border-color:var(--verde);background:#f0fdf4;color:var(--verde);}
+  .nivel-btn[data-nivel=medio].selected{border-color:var(--amarillo);background:#fffbeb;color:var(--amarillo);}
+  .nivel-btn[data-nivel=alto].selected{border-color:var(--rojo);background:#fef2f2;color:var(--rojo);}
+
+  /* TOGGLE */
+  .toggle-grupo{display:flex;gap:10px;}
+  .toggle-btn{flex:1;padding:11px;border-radius:9px;border:2px solid var(--borde);background:white;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;text-align:center;transition:all .15s;color:var(--gris);}
+  .toggle-btn[data-val=si].selected{border-color:var(--rojo);background:#fef2f2;color:var(--rojo);}
+  .toggle-btn[data-val=no].selected{border-color:var(--verde);background:#f0fdf4;color:var(--verde);}
+
+  /* iOS tap fixes */
+  button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+  .nivel-btn,.toggle-btn,.nec-item,.danio-item,.btn-geo,.btn-enviar{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+
+  /* CHECKBOXES DAÑOS (sin cambios) */
+  .danio-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid var(--borde);border-radius:9px;cursor:pointer;transition:all .14s;background:white;user-select:none;-webkit-tap-highlight-color:transparent;}
+  .danio-item.checked{border-color:var(--amarillo);background:#fffbeb;}
+  .danio-label{font-size:13px;font-weight:500;color:#334155;}
+  .danio-item.checked .danio-label{color:#92400e;font-weight:600;}
+  .check-ind{margin-left:auto;width:18px;height:18px;border-radius:4px;border:2px solid var(--borde);background:white;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .14s;flex-shrink:0;}
+  .danio-item.checked .check-ind{background:var(--amarillo);border-color:var(--amarillo);color:white;}
+
+  .danio-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+  .danio-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid var(--borde);border-radius:9px;cursor:pointer;transition:all .14s;background:white;user-select:none;-webkit-tap-highlight-color:transparent;}
+  .necesidades-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+  .nec-item{
+    display:flex;align-items:center;gap:9px;
+    padding:10px 12px;border:1.5px solid var(--borde);border-radius:9px;
+    cursor:pointer;transition:all .15s;background:white;user-select:none;
+    -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+    position:relative;
+  }
+  .nec-icon{font-size:17px;flex-shrink:0;}
+  .nec-label{font-size:13px;font-weight:500;color:#334155;flex:1;line-height:1.2;}
+  /* el badge de semáforo */
+  .nec-badge{
+    flex-shrink:0;min-width:22px;height:22px;border-radius:6px;
+    border:2px solid var(--borde);background:white;
+    display:flex;align-items:center;justify-content:center;
+    font-size:10px;font-weight:700;letter-spacing:0;
+    transition:all .15s;color:transparent;
+  }
+  /* estados semáforo */
+  .nec-item[data-prioridad="urgente"]{border-color:var(--rojo);background:#fef2f2;}
+  .nec-item[data-prioridad="urgente"] .nec-label{color:#991b1b;font-weight:700;}
+  .nec-item[data-prioridad="urgente"] .nec-badge{background:var(--rojo);border-color:var(--rojo);color:white;}
+
+  .nec-item[data-prioridad="importante"]{border-color:var(--amarillo);background:#fffbeb;}
+  .nec-item[data-prioridad="importante"] .nec-label{color:#92400e;font-weight:600;}
+  .nec-item[data-prioridad="importante"] .nec-badge{background:var(--amarillo);border-color:var(--amarillo);color:white;}
+
+  .nec-item[data-prioridad="puede-esperar"]{border-color:var(--verde);background:#f0fdf4;}
+  .nec-item[data-prioridad="puede-esperar"] .nec-label{color:#14532d;font-weight:600;}
+  .nec-item[data-prioridad="puede-esperar"] .nec-badge{background:var(--verde);border-color:var(--verde);color:white;}
+
+  /* leyenda semáforo */
+  .semaforo-leyenda{
+    display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;
+  }
+  .leyenda-item{
+    display:flex;align-items:center;gap:5px;
+    font-size:11.5px;font-weight:600;color:var(--gris);
+  }
+  .leyenda-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+  .leyenda-dot.rojo{background:var(--rojo);}
+  .leyenda-dot.amarillo{background:var(--amarillo);}
+  .leyenda-dot.verde{background:var(--verde);}
+  .instruccion-nec{font-size:12px;color:var(--gris);margin-bottom:10px;font-style:italic;}
+
+  /* PERSONAS */
+  .personas-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+  input[type=number]{text-align:center;}
+
+  .dos-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+  .fecha-display{font-family:'DM Mono',monospace;font-size:13px;color:var(--gris);background:var(--gris-claro);padding:10px 14px;border-radius:9px;border:1.5px solid var(--borde);}
+
+  .btn-enviar{width:100%;padding:17px;background:var(--azul);color:white;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:.3px;transition:background .18s,transform .1s;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:4px;}
+  .btn-enviar:active{transform:scale(.98);}
+  .btn-enviar:hover:not(:disabled){background:var(--azul-claro);}
+  .btn-enviar:disabled{background:var(--gris);cursor:not-allowed;}
+  .spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.35);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:none;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);color:white;padding:14px 22px;border-radius:12px;font-size:14.5px;font-weight:500;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:999;transition:transform .3s ease;text-align:center;max-width:90vw;background:#1e293b;}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+  .toast.exito{background:var(--verde);}
+  .toast.error{background:var(--rojo);}
+
+  .campo-error input,.campo-error select,.campo-error textarea{border-color:var(--rojo)!important;box-shadow:0 0 0 3px rgba(220,38,38,.12)!important;}
+  .error-msg{font-size:11.5px;color:var(--rojo);margin-top:4px;font-weight:500;display:none;}
+  .campo-error .error-msg{display:block;}
+
+  /* GEORREFERENCIA */
+  .btn-geo{
+    width:100%;padding:13px 16px;border-radius:10px;border:2px dashed var(--borde);
+    background:white;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;
+    font-weight:600;color:var(--gris);display:flex;align-items:center;justify-content:center;
+    gap:10px;transition:all .18s;
+  }
+  .btn-geo:hover{border-color:var(--agua);color:var(--azul-claro);background:var(--agua-light);}
+  .btn-geo.activo{border-style:solid;border-color:var(--verde);color:var(--verde);background:#f0fdf4;}
+  .btn-geo.cargando{border-color:var(--amarillo);color:var(--amarillo);background:#fffbeb;cursor:wait;}
+  .btn-geo .geo-spinner{
+    width:16px;height:16px;border:2px solid rgba(217,119,6,.3);border-top-color:var(--amarillo);
+    border-radius:50%;animation:spin .7s linear infinite;display:none;
+  }
+  .btn-geo.cargando .geo-spinner{display:block;}
+  .geo-resultado{
+    margin-top:10px;padding:12px 14px;border-radius:9px;
+    background:var(--gris-claro);border:1.5px solid var(--borde);display:none;
+  }
+  .geo-resultado.visible{display:block;}
+  .geo-coords{font-family:'DM Mono',monospace;font-size:12.5px;color:#334155;margin-bottom:8px;}
+  .geo-precision{font-size:11.5px;color:var(--gris);margin-bottom:10px;}
+  .geo-precision .pip{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;}
+  .geo-precision .pip.buena{background:var(--verde);}
+  .geo-precision .pip.media{background:var(--amarillo);}
+  .geo-precision .pip.baja{background:var(--rojo);}
+  .geo-mapa{width:100%;height:180px;border-radius:8px;border:1px solid var(--borde);overflow:hidden;}
+  .geo-mapa iframe{width:100%;height:100%;border:none;}
+  .geo-recapturar{
+    margin-top:8px;font-size:12px;color:var(--gris);background:none;border:none;
+    cursor:pointer;text-decoration:underline;font-family:'DM Sans',sans-serif;padding:0;
+  }
+
+  @media(max-width:400px){
+    .necesidades-grid,.danio-grid{grid-template-columns:1fr;}
+    .personas-row{grid-template-columns:1fr 1fr;}
+    .dos-col{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-icon">🌊</div>
+    <div class="header-text">
+      <h1>Emergencia Hídrica</h1>
+      <p>Municipalidad de Esquina · CEM</p>
+    </div>
+    <span class="badge-alerta">Emergencia</span>
+  </div>
+</div>
+
+<div class="wrapper">
+
+  <!-- 1. DATOS DEL VECINO -->
+  <div class="seccion">
+    <div class="seccion-header"><span class="emoji">👤</span><h2>Datos del Vecino</h2></div>
+    <div class="seccion-body">
+      <div class="campo-grupo" id="cg-nombre">
+        <label>Nombre y Apellido <span class="req">*</span></label>
+        <input type="text" id="nombre" placeholder="Ej: Juan Pérez">
+        <div class="error-msg">Ingresá el nombre y apellido</div>
+      </div>
+      <div class="dos-col">
+        <div class="campo-grupo">
+          <label>DNI</label>
+          <input type="text" id="dni" placeholder="28.450.123" inputmode="numeric" maxlength="12">
+        </div>
+        <div class="campo-grupo">
+          <label>Teléfono</label>
+          <input type="tel" id="telefono" placeholder="3777 12-3456">
+        </div>
+      </div>
+      <div class="campo-grupo" id="cg-barrio">
+        <label>Barrio / Sector <span class="req">*</span></label>
+        <div class="autocomplete-wrapper">
+          <input type="text" id="barrio-input" placeholder="Escribí para buscar..." autocomplete="off">
+          <button class="clear-btn" id="clear-barrio" tabindex="-1">✕</button>
+        </div>
+        <input type="hidden" id="barrio-valor">
+        <div class="error-msg">Seleccioná un barrio</div>
+      </div>
+      <div class="campo-grupo">
+        <label>Dirección / Referencia</label>
+        <input type="text" id="referencia" placeholder="Calle, número, entre calles...">
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. COMPOSICIÓN DEL HOGAR -->
+  <div class="seccion">
+    <div class="seccion-header"><span class="emoji">👨‍👩‍👧‍👦</span><h2>Composición del Hogar</h2></div>
+    <div class="seccion-body">
+      <div class="campo-grupo">
+        <label>Personas en el domicilio</label>
+        <div class="personas-row">
+          <div>
+            <label>👶 Menores</label>
+            <input type="number" id="menores" min="0" max="20" value="0">
+          </div>
+          <div>
+            <label>🧑 Adultos</label>
+            <input type="number" id="adultos" min="0" max="20" value="0">
+          </div>
+          <div>
+            <label>👴 Mayores</label>
+            <input type="number" id="mayores" min="0" max="20" value="0">
+          </div>
+        </div>
+      </div>
+      <div class="campo-grupo">
+        <label>¿Hay personas con discapacidad o condición de salud crítica?</label>
+        <div class="toggle-grupo" id="tg-discapacidad">
+          <button class="toggle-btn" data-val="si" type="button">✔ Sí</button>
+          <button class="toggle-btn" data-val="no" type="button">✗ No</button>
+        </div>
+        <input type="hidden" id="discapacidad">
+      </div>
+      <div class="campo-grupo" id="cg-discapacidad-detalle" style="display:none">
+        <label>Describir la discapacidad o condición de salud</label>
+        <textarea id="discapacidad-detalle" placeholder="Ej: movilidad reducida, diabetes, oxígeno domiciliario..." style="min-height:70px"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. SITUACIÓN DE LA VIVIENDA -->
+  <div class="seccion">
+    <div class="seccion-header"><span class="emoji">🏠</span><h2>Situación de la Vivienda</h2></div>
+    <div style="background:#fef3c7;border-bottom:1px solid #fde68a;padding:10px 18px;display:flex;align-items:center;gap:8px;">
+      <span style="font-size:16px">👁️</span>
+      <span style="font-size:12px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.6px">Observar — no preguntar al vecino</span>
+    </div>
+    <div class="seccion-body">
+      <div class="campo-grupo" id="cg-nivel">
+        <label>Nivel del Agua <span class="req">*</span></label>
+        <div class="nivel-grupo">
+          <button class="nivel-btn" data-nivel="bajo" type="button"><span class="nivel-icon">💧</span>Bajo</button>
+          <button class="nivel-btn" data-nivel="medio" type="button"><span class="nivel-icon">🌊</span>Medio</button>
+          <button class="nivel-btn" data-nivel="alto" type="button"><span class="nivel-icon">⚠️</span>Alto</button>
+        </div>
+        <input type="hidden" id="nivel-agua">
+        <div class="error-msg">Indicá el nivel del agua</div>
+      </div>
+      <div class="campo-grupo" id="cg-evacuado">
+        <label>¿Está evacuado/a? <span class="req">*</span></label>
+        <div class="toggle-grupo" id="tg-evacuado">
+          <button class="toggle-btn" data-val="si" type="button">✔ Sí</button>
+          <button class="toggle-btn" data-val="no" type="button">✗ No</button>
+        </div>
+        <input type="hidden" id="evacuado">
+        <div class="error-msg">Indicá si fue evacuado/a</div>
+      </div>
+      <div class="campo-grupo" id="cg-donde" style="display:none">
+        <label>¿Dónde se encuentra actualmente?</label>
+        <input type="text" id="donde" placeholder="Centro de evacuados, casa de familiar...">
+      </div>
+      <div class="campo-grupo">
+        <label>Daños observados en la vivienda</label>
+        <div class="danio-grid" id="danio-grid">
+          <div class="danio-item" data-id="pisos"><span class="nec-icon">🪵</span><span class="danio-label">Pisos dañados</span><div class="check-ind"></div></div>
+          <div class="danio-item" data-id="paredes"><span class="nec-icon">🧱</span><span class="danio-label">Paredes / grietas</span><div class="check-ind"></div></div>
+          <div class="danio-item" data-id="muebles"><span class="nec-icon">🛋️</span><span class="danio-label">Muebles perdidos</span><div class="check-ind"></div></div>
+          <div class="danio-item" data-id="ropa"><span class="nec-icon">👕</span><span class="danio-label">Ropa / indumentaria</span><div class="check-ind"></div></div>
+        </div>
+        <div style="margin-top:9px">
+          <input type="text" id="danios-otros" placeholder="Otros daños observados...">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. NECESIDADES -->
+  <div class="seccion">
+    <div class="seccion-header"><span class="emoji">🆘</span><h2>Necesidades Inmediatas</h2></div>
+    <div class="seccion-body">
+      <div class="campo-grupo">
+        <div class="semaforo-leyenda">
+          <div class="leyenda-item"><div class="leyenda-dot rojo"></div>Urgente</div>
+          <div class="leyenda-item"><div class="leyenda-dot amarillo"></div>Importante</div>
+          <div class="leyenda-item"><div class="leyenda-dot verde"></div>Puede esperar</div>
+        </div>
+        <p class="instruccion-nec">Tocá cada ítem para asignarle prioridad. Tocá de nuevo para cambiarla.</p>
+        <div class="necesidades-grid" id="nec-grid">
+          <div class="nec-item" data-id="alimentos"><span class="nec-icon">🍞</span><span class="nec-label">Alimentos</span><div class="nec-badge"></div></div>
+          <div class="nec-item" data-id="agua"><span class="nec-icon">💧</span><span class="nec-label">Agua potable</span><div class="nec-badge"></div></div>
+          <div class="nec-item" data-id="colchon"><span class="nec-icon">🛏️</span><span class="nec-label">Colchón</span><div class="nec-badge"></div></div>
+          <div class="nec-item" data-id="frazadas"><span class="nec-icon">🧣</span><span class="nec-label">Frazadas</span><div class="nec-badge"></div></div>
+          <div class="nec-item" data-id="ropa"><span class="nec-icon">👗</span><span class="nec-label">Ropa</span><div class="nec-badge"></div></div>
+          <div class="nec-item" data-id="medicamentos"><span class="nec-icon">💊</span><span class="nec-label">Medicamentos</span><div class="nec-badge"></div></div>
+          <div class="nec-item" data-id="limpieza"><span class="nec-icon">🧹</span><span class="nec-label">Limpieza</span><div class="nec-badge"></div></div>
+          <div class="nec-item" data-id="higiene"><span class="nec-icon">🧴</span><span class="nec-label">Higiene personal</span><div class="nec-badge"></div></div>
+          <div class="nec-item" data-id="herramientas"><span class="nec-icon">🔧</span><span class="nec-label">Herramientas</span><div class="nec-badge"></div></div>
+          <div class="nec-item" data-id="materiales"><span class="nec-icon">🏗️</span><span class="nec-label">Materiales obra</span><div class="nec-badge"></div></div>
+        </div>
+      </div>
+      <div class="campo-grupo">
+        <label>Otras necesidades</label>
+        <input type="text" id="otras-necesidades" placeholder="Especificá si hay algo más...">
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. OBSERVACIONES -->
+  <div class="seccion">
+    <div class="seccion-header"><span class="emoji">📝</span><h2>Observaciones del Agente</h2></div>
+    <div class="seccion-body">
+      <div class="campo-grupo">
+        <label>Observaciones generales</label>
+        <textarea id="observaciones" placeholder="Situación especial, contexto, urgencias no contempladas arriba..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. GEORREFERENCIA -->
+  <div class="seccion">
+    <div class="seccion-header"><span class="emoji">📍</span><h2>Georreferencia</h2></div>
+    <div class="seccion-body">
+      <div class="campo-grupo">
+        <label>Ubicación del domicilio</label>
+        <button class="btn-geo" id="btn-geo" type="button">
+          <div class="geo-spinner"></div>
+          <span id="btn-geo-text">📍 Capturar ubicación GPS</span>
+        </button>
+        <div class="geo-resultado" id="geo-resultado">
+          <div class="geo-coords" id="geo-coords">—</div>
+          <div class="geo-precision" id="geo-precision"></div>
+          <div class="geo-mapa" id="geo-mapa"></div>
+          <button class="geo-recapturar" id="geo-recapturar" type="button">↺ Volver a capturar</button>
+        </div>
+        <input type="hidden" id="geo-lat">
+        <input type="hidden" id="geo-lng">
+        <input type="hidden" id="geo-precision-val">
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. AGENTE -->
+  <div class="seccion">
+    <div class="seccion-header"><span class="emoji">🪪</span><h2>Datos del Agente</h2></div>
+    <div class="seccion-body">
+      <div class="dos-col">
+        <div class="campo-grupo" id="cg-agente">
+          <label>Nombre del agente <span class="req">*</span></label>
+          <input type="text" id="agente" placeholder="Nombre completo">
+          <div class="error-msg">Ingresá tu nombre</div>
+        </div>
+        <div class="campo-grupo">
+          <label>Secretaría / Área</label>
+          <select id="area">
+            <option value="">— Seleccioná —</option>
+            <option>Desarrollo Social</option>
+            <option>Salud</option>
+            <option>Obras Públicas</option>
+            <option>Defensa Civil</option>
+            <option>Gobierno</option>
+            <option>Otra</option>
+          </select>
+        </div>
+      </div>
+      <div class="campo-grupo">
+        <label>Fecha y hora del relevamiento</label>
+        <div class="fecha-display" id="fecha-display">—</div>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-enviar" id="btn-enviar" type="button">
+    <div class="spinner" id="spinner"></div>
+    <span id="btn-text">💾 Guardar registro</span>
+  </button>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer class="footer-cem">
+  <div class="footer-inner">
+    <div class="footer-logo">
+      <div class="footer-logo-icon">📊</div>
+      <div class="footer-logo-text">
+        <strong>Centro Estadístico Municipal</strong>
+        <span>Municipalidad de Esquina · Corrientes</span>
+      </div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-meta">RELEVAMIENTO DE EMERGENCIA · INUNDACIONES 2025</div>
+  </div>
+</footer>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  CONFIGURACIÓN — reemplazá con tu URL de Apps Script
+// ══════════════════════════════════════════════════════
+const https://script.google.com/macros/s/AKfycby5iX3ZxRr5L9OmIhJObvI39Rxe0NaThAE__U9KpIQoyNATUWTol1MF_z_PVi0ElIfd/exec = "https://script.google.com/macros/s/AKfycbye7iFBaWKkwPwJnmd5ZpZouBqvxCf8karbhjl8-cN5R7ICmu1DpIMHjTQ3-Zo1KkgU/exec";
+
+// ══════════════════════════════════════════════════════
+//  BARRIOS
+// ══════════════════════════════════════════════════════
+const BARRIOS = [
+  "9 de Julio","0651","100 Viviendas","128 Viviendas","1ra Sección (Ejido)",
+  "30 Viviendas","35 Viviendas","3ra Sección","34 Viviendas","48 Viviendas",
+  "80 Viviendas","90 Viviendas","AeroClub","Antártida Argentina","Arroyo Vega",
+  "Av. Juan Ramón Vidal","Bello Horizonte","Berón de Astrada","Bicentenario",
+  "Camino del Medio","Centro","Cooperativa","Costanera","Curva Norte (J. Ferreira)",
+  "El Piropo","Guayquiraró","Hospital","Inmaculada","Islas Malvinas","Itatí",
+  "La Providencia","La Tablada","Las Palmas","Los Ceibos","Los Lirios","Los Sauces",
+  "Mancini","Obras Sanitarias","Quinta Cuatro","Ruta 12","San Antonio","San Benito",
+  "San Cayetano","San Fernando","Santa Catalina","Santa Librada","Villa Oristia",
+  "Villa Soldati"
+].sort((a,b) => a.localeCompare(b,"es"));
+
+// ══════════════════════════════════════════════════════
+//  FECHA
+// ══════════════════════════════════════════════════════
+function fechaLegible() {
+  const n = new Date();
+  const dias = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+  const meses = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  return `${dias[n.getDay()]} ${n.getDate()} de ${meses[n.getMonth()]} de ${n.getFullYear()} — ${String(n.getHours()).padStart(2,"0")}:${String(n.getMinutes()).padStart(2,"0")} hs`;
+}
+document.getElementById("fecha-display").textContent = fechaLegible();
+
+// ══════════════════════════════════════════════════════
+//  AUTOCOMPLETE BARRIOS
+// ══════════════════════════════════════════════════════
+const barrioInput = document.getElementById("barrio-input");
+const barrioValor = document.getElementById("barrio-valor");
+const dropdown    = document.getElementById("barrio-dropdown");
+const clearBtn    = document.getElementById("clear-barrio");
+
+function highlight(text, q) {
+  return text.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")})`, "gi"), "<mark>$1</mark>");
+}
+
+function mostrarDropdown(q) {
+  dropdown.innerHTML = "";
+  if (!q) { dropdown.classList.remove("visible"); return; }
+  const f = BARRIOS.filter(b => b.toLowerCase().includes(q.toLowerCase()));
+  if (f.length) {
+    f.forEach(b => {
+      const div = document.createElement("div");
+      div.className = "dropdown-item";
+      div.innerHTML = highlight(b, q);
+      div.addEventListener("mousedown", e => { e.preventDefault(); elegirBarrio(b); });
+      dropdown.appendChild(div);
+    });
+  }
+  // Siempre mostrar opción "Otro / escribir manualmente" al final
+  const divOtro = document.createElement("div");
+  divOtro.className = "dropdown-item";
+  divOtro.style.cssText = "color:var(--azul-claro);font-style:italic;border-top:1px dashed var(--borde);";
+  divOtro.textContent = `✏️ Usar "${q}" como barrio`;
+  divOtro.addEventListener("mousedown", e => { e.preventDefault(); elegirBarrioLibre(q); });
+  dropdown.appendChild(divOtro);
+  dropdown.classList.add("visible");
+}
+
+function elegirBarrio(b) {
+  barrioInput.value = b; barrioValor.value = b;
+  dropdown.classList.remove("visible"); clearBtn.style.display = "block";
+  document.getElementById("cg-barrio").classList.remove("campo-error");
+}
+
+function elegirBarrioLibre(texto) {
+  barrioInput.value = texto; barrioValor.value = texto;
+  dropdown.classList.remove("visible"); clearBtn.style.display = "block";
+  document.getElementById("cg-barrio").classList.remove("campo-error");
+}
+
+barrioInput.addEventListener("input", () => {
+  // Acepta lo que se escribe directamente como valor válido
+  barrioValor.value = barrioInput.value.trim();
+  clearBtn.style.display = barrioInput.value ? "block" : "none";
+  mostrarDropdown(barrioInput.value);
+});
+barrioInput.addEventListener("focus", () => { if (barrioInput.value) mostrarDropdown(barrioInput.value); });
+barrioInput.addEventListener("blur", () => setTimeout(() => dropdown.classList.remove("visible"), 150));
+clearBtn.addEventListener("click", () => {
+  barrioInput.value = ""; barrioValor.value = "";
+  clearBtn.style.display = "none"; dropdown.classList.remove("visible"); barrioInput.focus();
+});
+
+// ══════════════════════════════════════════════════════
+//  NIVEL AGUA
+// ══════════════════════════════════════════════════════
+document.querySelectorAll(".nivel-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".nivel-btn").forEach(b => b.classList.remove("selected"));
+    btn.classList.add("selected");
+    document.getElementById("nivel-agua").value = btn.dataset.nivel;
+    document.getElementById("cg-nivel").classList.remove("campo-error");
+  });
+});
+
+// ══════════════════════════════════════════════════════
+//  TOGGLES SÍ/NO
+// ══════════════════════════════════════════════════════
+function setupToggle(groupId, hiddenId, cgId, onChange) {
+  document.querySelectorAll(`#${groupId} .toggle-btn`).forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(`#${groupId} .toggle-btn`).forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      document.getElementById(hiddenId).value = btn.dataset.val;
+      if (cgId) document.getElementById(cgId).classList.remove("campo-error");
+      if (onChange) onChange(btn.dataset.val);
+    });
+  });
+}
+setupToggle("tg-evacuado", "evacuado", "cg-evacuado", val => {
+  document.getElementById("cg-donde").style.display = val === "si" ? "block" : "none";
+});
+setupToggle("tg-discapacidad", "discapacidad", null, val => {
+  document.getElementById("cg-discapacidad-detalle").style.display = val === "si" ? "block" : "none";
+});
+
+// ══════════════════════════════════════════════════════
+//  SEMÁFORO NECESIDADES
+// ══════════════════════════════════════════════════════
+const PRIORIDADES = ["", "urgente", "importante", "puede-esperar"];
+const BADGES = { "urgente": "🔴", "importante": "🟡", "puede-esperar": "🟢" };
+
+document.querySelectorAll("#nec-grid .nec-item").forEach(item => {
+  item.dataset.prioridad = "";
+  item.addEventListener("click", () => {
+    const actual = item.dataset.prioridad || "";
+    const idx = PRIORIDADES.indexOf(actual);
+    const siguiente = PRIORIDADES[(idx + 1) % PRIORIDADES.length];
+    item.dataset.prioridad = siguiente;
+    const badge = item.querySelector(".nec-badge");
+    badge.textContent = siguiente ? BADGES[siguiente] : "";
+  });
+});
+document.querySelectorAll("#danio-grid .danio-item").forEach(item => {
+  item.addEventListener("click", () => {
+    item.classList.toggle("checked");
+    item.querySelector(".check-ind").textContent = item.classList.contains("checked") ? "✓" : "";
+  });
+});
+
+// ══════════════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════════════
+function showToast(msg, tipo = "") {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.className = "toast " + tipo; t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 4000);
+}
+
+// ══════════════════════════════════════════════════════
+//  VALIDACIÓN
+// ══════════════════════════════════════════════════════
+function validar() {
+  let ok = true;
+  const campos = [
+    { id: "cg-nombre",   val: () => document.getElementById("nombre").value.trim() },
+    { id: "cg-barrio",   val: () => document.getElementById("barrio-valor").value },
+    { id: "cg-nivel",    val: () => document.getElementById("nivel-agua").value },
+    { id: "cg-evacuado", val: () => document.getElementById("evacuado").value },
+    { id: "cg-agente",   val: () => document.getElementById("agente").value.trim() },
+  ];
+  campos.forEach(c => {
+    const el = document.getElementById(c.id);
+    if (!c.val()) { el.classList.add("campo-error"); ok = false; }
+    else el.classList.remove("campo-error");
+  });
+  return ok;
+}
+
+// ══════════════════════════════════════════════════════
+//  RECOLECTAR DATOS
+// ══════════════════════════════════════════════════════
+function recolectar() {
+  const menores = parseInt(document.getElementById("menores").value)||0;
+  const adultos = parseInt(document.getElementById("adultos").value)||0;
+  const mayores = parseInt(document.getElementById("mayores").value)||0;
+  const necItems = [...document.querySelectorAll("#nec-grid .nec-item")];
+  const necUrgente    = necItems.filter(e=>e.dataset.prioridad==="urgente").map(e=>e.dataset.id).join(", ");
+  const necImportante = necItems.filter(e=>e.dataset.prioridad==="importante").map(e=>e.dataset.id).join(", ");
+  const necPuedeEsperar = necItems.filter(e=>e.dataset.prioridad==="puede-esperar").map(e=>e.dataset.id).join(", ");
+  const danios      = [...document.querySelectorAll("#danio-grid .danio-item.checked")].map(e=>e.dataset.id).join(", ");
+  return {
+    timestamp:         new Date().toISOString(),
+    fecha_legible:     fechaLegible(),
+    nombre:            document.getElementById("nombre").value.trim(),
+    dni:               document.getElementById("dni").value.trim(),
+    telefono:          document.getElementById("telefono").value.trim(),
+    barrio:            document.getElementById("barrio-valor").value,
+    referencia:        document.getElementById("referencia").value.trim(),
+    personas_menores:  menores,
+    personas_adultos:  adultos,
+    personas_mayores:  mayores,
+    total_personas:    menores+adultos+mayores,
+    discapacidad:           document.getElementById("discapacidad").value,
+    discapacidad_detalle:   document.getElementById("discapacidad-detalle").value.trim(),
+    nivel_agua:        document.getElementById("nivel-agua").value,
+    evacuado:          document.getElementById("evacuado").value,
+    donde:             document.getElementById("donde").value.trim(),
+    danios_vivienda:        danios,
+    danios_otros:           document.getElementById("danios-otros").value.trim(),
+    necesidades_urgentes:   necUrgente,
+    necesidades_importantes: necImportante,
+    necesidades_pueden_esperar: necPuedeEsperar,
+    otras_necesidades: document.getElementById("otras-necesidades").value.trim(),
+    observaciones:     document.getElementById("observaciones").value.trim(),
+    geo_lat:           document.getElementById("geo-lat").value,
+    geo_lng:           document.getElementById("geo-lng").value,
+    geo_precision_m:   document.getElementById("geo-precision-val").value,
+    geo_maps_link:     document.getElementById("geo-lat").value
+                         ? `https://maps.google.com/?q=${document.getElementById("geo-lat").value},${document.getElementById("geo-lng").value}`
+                         : "",
+    agente:            document.getElementById("agente").value.trim(),
+    area:              document.getElementById("area").value,
+  };
+}
+
+// ══════════════════════════════════════════════════════
+//  GEORREFERENCIA
+// ══════════════════════════════════════════════════════
+const btnGeo       = document.getElementById("btn-geo");
+const btnGeoText   = document.getElementById("btn-geo-text");
+const geoResultado = document.getElementById("geo-resultado");
+const geoCoords    = document.getElementById("geo-coords");
+const geoPrecision = document.getElementById("geo-precision");
+const geoMapa      = document.getElementById("geo-mapa");
+
+function capturarGeo() {
+  if (!navigator.geolocation) {
+    showToast("Este dispositivo no soporta GPS", "error"); return;
+  }
+  btnGeo.className = "btn-geo cargando";
+  btnGeoText.textContent = "Obteniendo ubicación...";
+  btnGeo.querySelector(".geo-spinner").style.display = "block";
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const lat = pos.coords.latitude.toFixed(6);
+      const lng = pos.coords.longitude.toFixed(6);
+      const acc = Math.round(pos.coords.accuracy);
+
+      // Guardar en hidden inputs
+      document.getElementById("geo-lat").value = lat;
+      document.getElementById("geo-lng").value = lng;
+      document.getElementById("geo-precision-val").value = acc;
+
+      // Mostrar coords
+      geoCoords.textContent = `Lat: ${lat}   Lng: ${lng}`;
+
+      // Indicador de precisión
+      let pipClass = acc <= 20 ? "buena" : acc <= 60 ? "media" : "baja";
+      let pipLabel = acc <= 20 ? "Precisión buena" : acc <= 60 ? "Precisión media" : "Precisión baja";
+      geoPrecision.innerHTML = `<span class="pip ${pipClass}"></span>${pipLabel} · ±${acc} metros`;
+
+      // Mini-mapa OpenStreetMap
+      geoMapa.innerHTML = `<iframe
+        src="https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(lng)-.002},${parseFloat(lat)-.002},${parseFloat(lng)+.002},${parseFloat(lat)+.002}&layer=mapnik&marker=${lat},${lng}"
+        loading="lazy" title="Mapa de ubicación"></iframe>`;
+
+      // Actualizar botón
+      btnGeo.className = "btn-geo activo";
+      btnGeoText.textContent = "✅ Ubicación capturada";
+      btnGeo.querySelector(".geo-spinner").style.display = "none";
+      geoResultado.classList.add("visible");
+    },
+    err => {
+      btnGeo.className = "btn-geo";
+      btnGeoText.textContent = "📍 Capturar ubicación GPS";
+      btnGeo.querySelector(".geo-spinner").style.display = "none";
+      const msgs = {1:"Permiso de ubicación denegado",2:"No se pudo obtener la posición",3:"Tiempo de espera agotado"};
+      showToast("⚠️ " + (msgs[err.code] || "Error de GPS"), "error");
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  );
+}
+
+btnGeo.addEventListener("click", capturarGeo);
+document.getElementById("geo-recapturar").addEventListener("click", () => {
+  geoResultado.classList.remove("visible");
+  geoMapa.innerHTML = "";
+  document.getElementById("geo-lat").value = "";
+  document.getElementById("geo-lng").value = "";
+  document.getElementById("geo-precision-val").value = "";
+  btnGeo.className = "btn-geo";
+  btnGeoText.textContent = "📍 Capturar ubicación GPS";
+  capturarGeo();
+});
+
+// ══════════════════════════════════════════════════════
+//  ENVÍO
+// ══════════════════════════════════════════════════════
+document.getElementById("btn-enviar").addEventListener("click", async () => {
+  if (!validar()) {
+    showToast("⚠️ Completá los campos obligatorios", "error");
+    document.querySelector(".campo-error")?.scrollIntoView({behavior:"smooth",block:"center"});
+    return;
+  }
+  const btn = document.getElementById("btn-enviar");
+  const spinner = document.getElementById("spinner");
+  const btnText = document.getElementById("btn-text");
+  btn.disabled = true; spinner.style.display = "block"; btnText.textContent = "Enviando...";
+  try {
+    const datos = recolectar();
+    const params = new URLSearchParams({ payload: JSON.stringify(datos) });
+    await fetch(SHEET_URL + "?" + params.toString(), {
+      method: "GET",
+      mode: "no-cors"
+    });
+    showToast("✅ Registro guardado correctamente", "exito");
+    setTimeout(limpiar, 1500);
+  } catch(err) {
+    showToast("❌ Error de conexión. Intentá de nuevo.", "error");
+  } finally {
+    btn.disabled = false; spinner.style.display = "none"; btnText.textContent = "💾 Guardar registro";
+  }
+});
+
+// ══════════════════════════════════════════════════════
+//  LIMPIAR
+// ══════════════════════════════════════════════════════
+function limpiar() {
+  ["nombre","dni","telefono","referencia","donde","otras-necesidades","observaciones","agente","discapacidad-detalle","danios-otros"]
+    .forEach(id => document.getElementById(id).value = "");
+  ["barrio-input","barrio-valor","nivel-agua","evacuado","discapacidad","geo-lat","geo-lng","geo-precision-val"]
+    .forEach(id => document.getElementById(id).value = "");
+  document.getElementById("cg-discapacidad-detalle").style.display = "none";
+  ["menores","adultos","mayores"].forEach(id => document.getElementById(id).value = 0);
+  document.getElementById("area").value = "";
+  document.querySelectorAll(".nivel-btn,.toggle-btn").forEach(b => b.classList.remove("selected"));
+  document.querySelectorAll(".danio-item").forEach(el => {
+    el.classList.remove("checked");
+    el.querySelector(".check-ind").textContent = "";
+  });
+  document.querySelectorAll("#nec-grid .nec-item").forEach(el => {
+    el.dataset.prioridad = "";
+    el.querySelector(".nec-badge").textContent = "";
+  });
+  document.getElementById("cg-donde").style.display = "none";
+  clearBtn.style.display = "none";
+  // reset geo
+  geoResultado.classList.remove("visible");
+  geoMapa.innerHTML = "";
+  btnGeo.className = "btn-geo";
+  btnGeoText.textContent = "📍 Capturar ubicación GPS";
+  btnGeo.querySelector(".geo-spinner").style.display = "none";
+  document.getElementById("fecha-display").textContent = fechaLegible();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+</script>
+</body>
+</html>
