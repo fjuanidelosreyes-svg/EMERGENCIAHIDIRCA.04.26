@@ -91,60 +91,63 @@
   button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
   .nivel-btn,.toggle-btn,.nec-item,.danio-item,.btn-geo,.btn-enviar{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
 
-  /* CHECKBOXES DAÑOS (sin cambios) */
-  .danio-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid var(--borde);border-radius:9px;cursor:pointer;transition:all .14s;background:white;user-select:none;-webkit-tap-highlight-color:transparent;}
-  .danio-item.checked{border-color:var(--amarillo);background:#fffbeb;}
-  .danio-label{font-size:13px;font-weight:500;color:#334155;}
-  .danio-item.checked .danio-label{color:#92400e;font-weight:600;}
-  .check-ind{margin-left:auto;width:18px;height:18px;border-radius:4px;border:2px solid var(--borde);background:white;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .14s;flex-shrink:0;}
-  .danio-item.checked .check-ind{background:var(--amarillo);border-color:var(--amarillo);color:white;}
-
-  .danio-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
-  .danio-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid var(--borde);border-radius:9px;cursor:pointer;transition:all .14s;background:white;user-select:none;-webkit-tap-highlight-color:transparent;}
+  /* SEMÁFORO NECESIDADES */
   .necesidades-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
   .nec-item{
     display:flex;align-items:center;gap:9px;
     padding:10px 12px;border:1.5px solid var(--borde);border-radius:9px;
-    cursor:pointer;transition:all .15s;background:white;user-select:none;
-    -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+    cursor:pointer;transition:all .15s;background:white;
+    -webkit-tap-highlight-color:rgba(0,0,0,0);
+    touch-action:manipulation;
+    -webkit-user-select:none;user-select:none;
     position:relative;
+    pointer-events:auto;
   }
+  .nec-item *{pointer-events:none;}
   .nec-icon{font-size:17px;flex-shrink:0;}
   .nec-label{font-size:13px;font-weight:500;color:#334155;flex:1;line-height:1.2;}
-  /* el badge de semáforo */
   .nec-badge{
-    flex-shrink:0;min-width:22px;height:22px;border-radius:6px;
+    flex-shrink:0;min-width:24px;height:24px;border-radius:6px;
     border:2px solid var(--borde);background:white;
     display:flex;align-items:center;justify-content:center;
-    font-size:10px;font-weight:700;letter-spacing:0;
-    transition:all .15s;color:transparent;
+    font-size:13px;transition:all .15s;
   }
-  /* estados semáforo */
   .nec-item[data-prioridad="urgente"]{border-color:var(--rojo);background:#fef2f2;}
   .nec-item[data-prioridad="urgente"] .nec-label{color:#991b1b;font-weight:700;}
-  .nec-item[data-prioridad="urgente"] .nec-badge{background:var(--rojo);border-color:var(--rojo);color:white;}
-
+  .nec-item[data-prioridad="urgente"] .nec-badge{background:var(--rojo);border-color:var(--rojo);}
   .nec-item[data-prioridad="importante"]{border-color:var(--amarillo);background:#fffbeb;}
   .nec-item[data-prioridad="importante"] .nec-label{color:#92400e;font-weight:600;}
-  .nec-item[data-prioridad="importante"] .nec-badge{background:var(--amarillo);border-color:var(--amarillo);color:white;}
-
+  .nec-item[data-prioridad="importante"] .nec-badge{background:var(--amarillo);border-color:var(--amarillo);}
   .nec-item[data-prioridad="puede-esperar"]{border-color:var(--verde);background:#f0fdf4;}
   .nec-item[data-prioridad="puede-esperar"] .nec-label{color:#14532d;font-weight:600;}
-  .nec-item[data-prioridad="puede-esperar"] .nec-badge{background:var(--verde);border-color:var(--verde);color:white;}
+  .nec-item[data-prioridad="puede-esperar"] .nec-badge{background:var(--verde);border-color:var(--verde);}
 
   /* leyenda semáforo */
-  .semaforo-leyenda{
-    display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;
-  }
-  .leyenda-item{
-    display:flex;align-items:center;gap:5px;
-    font-size:11.5px;font-weight:600;color:var(--gris);
-  }
+  .semaforo-leyenda{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+  .leyenda-item{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:var(--gris);}
   .leyenda-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
   .leyenda-dot.rojo{background:var(--rojo);}
   .leyenda-dot.amarillo{background:var(--amarillo);}
   .leyenda-dot.verde{background:var(--verde);}
   .instruccion-nec{font-size:12px;color:var(--gris);margin-bottom:10px;font-style:italic;}
+
+  /* CHECKBOXES DAÑOS */
+  .danio-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+  .danio-item{
+    display:flex;align-items:center;gap:10px;padding:10px 12px;
+    border:1.5px solid var(--borde);border-radius:9px;
+    cursor:pointer;transition:all .14s;background:white;
+    -webkit-tap-highlight-color:rgba(0,0,0,0);
+    touch-action:manipulation;
+    -webkit-user-select:none;user-select:none;
+    pointer-events:auto;
+  }
+  .danio-item *{pointer-events:none;}
+  .danio-item.checked{border-color:var(--amarillo);background:#fffbeb;}
+  .danio-label{font-size:13px;font-weight:500;color:#334155;}
+  .danio-item.checked .danio-label{color:#92400e;font-weight:600;}
+  .check-ind{margin-left:auto;width:20px;height:20px;border-radius:5px;border:2px solid var(--borde);background:white;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .14s;flex-shrink:0;}
+  .danio-item.checked .check-ind{background:var(--amarillo);border-color:var(--amarillo);color:white;}
 
   /* PERSONAS */
   .personas-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
@@ -249,6 +252,7 @@
         <div class="autocomplete-wrapper">
           <input type="text" id="barrio-input" placeholder="Escribí para buscar..." autocomplete="off">
           <button class="clear-btn" id="clear-barrio" tabindex="-1">✕</button>
+          <div class="dropdown" id="barrio-dropdown"></div>
         </div>
         <input type="hidden" id="barrio-valor">
         <div class="error-msg">Seleccioná un barrio</div>
@@ -464,7 +468,7 @@
 // ══════════════════════════════════════════════════════
 //  CONFIGURACIÓN — reemplazá con tu URL de Apps Script
 // ══════════════════════════════════════════════════════
-const https://script.google.com/macros/s/AKfycby5iX3ZxRr5L9OmIhJObvI39Rxe0NaThAE__U9KpIQoyNATUWTol1MF_z_PVi0ElIfd/exec = "https://script.google.com/macros/s/AKfycbye7iFBaWKkwPwJnmd5ZpZouBqvxCf8karbhjl8-cN5R7ICmu1DpIMHjTQ3-Zo1KkgU/exec";
+const SHEET_URL = "https://script.google.com/macros/s/AKfycby5iX3ZxRr5L9OmIhJObvI39Rxe0NaThAE__U9KpIQoyNATUWTol1MF_z_PVi0ElIfd/exec";
 
 // ══════════════════════════════════════════════════════
 //  BARRIOS
