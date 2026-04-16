@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tablero — Emergencia Hídrica · Esquina</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --azul:#1a3a5c;--azul2:#2563a8;--agua:#3b82f6;--agua-light:#dbeafe;
+  --rojo:#dc2626;--rojo-light:#fef2f2;
+  --amarillo:#d97706;--amarillo-light:#fffbeb;
+  --verde:#16a34a;--verde-light:#f0fdf4;
+  --gris:#64748b;--gris-claro:#f1f5f9;--borde:#e2e8f0;
+  --blanco:#ffffff;--fondo:#f0f4f9;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--fondo);color:#1e293b;min-height:100vh;}
+
+/* HEADER */
+.header{background:var(--azul);color:white;padding:0;}
+.header-inner{max-width:1200px;margin:0 auto;padding:18px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.header-logo{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;line-height:1;}
+.header-sub{font-size:12px;opacity:.6;font-weight:400;margin-top:2px;}
+.header-badge{margin-left:auto;background:var(--rojo);padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.7;}}
+.header-update{font-family:'DM Mono',monospace;font-size:11px;opacity:.5;margin-left:12px;}
+
+/* LOADING */
+.loading-screen{position:fixed;inset:0;background:var(--azul);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;gap:16px;transition:opacity .4s;}
+.loading-screen.hidden{opacity:0;pointer-events:none;}
+.loading-logo{font-family:'Bebas Neue',sans-serif;font-size:48px;color:white;letter-spacing:2px;}
+.loading-bar{width:200px;height:3px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden;}
+.loading-bar-inner{height:100%;background:white;border-radius:2px;animation:loadbar 1.5s ease-in-out infinite;}
+@keyframes loadbar{0%{width:0;margin-left:0;}50%{width:60%;margin-left:20%;}100%{width:0;margin-left:100%;}  }
+.loading-txt{color:rgba(255,255,255,.6);font-size:13px;}
+
+/* ERROR */
+.error-banner{background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:16px 20px;margin:20px 24px;display:none;align-items:center;gap:12px;font-size:14px;color:var(--rojo);}
+.error-banner.visible{display:flex;}
+
+/* MAIN */
+.main{max-width:1200px;margin:0 auto;padding:24px 20px;}
+
+/* RESUMEN EJECUTIVO */
+.resumen-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px;}
+.kpi{background:white;border-radius:14px;padding:18px 20px;box-shadow:0 1px 4px rgba(0,0,0,.07);border-top:3px solid var(--borde);position:relative;overflow:hidden;}
+.kpi.urgente{border-top-color:var(--rojo);}
+.kpi.media{border-top-color:var(--amarillo);}
+.kpi.ok{border-top-color:var(--verde);}
+.kpi.total{border-top-color:var(--azul2);}
+.kpi-num{font-family:'Bebas Neue',sans-serif;font-size:48px;line-height:1;color:var(--azul);}
+.kpi.urgente .kpi-num{color:var(--rojo);}
+.kpi.media .kpi-num{color:var(--amarillo);}
+.kpi.ok .kpi-num{color:var(--verde);}
+.kpi-label{font-size:12px;font-weight:600;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;margin-top:4px;}
+.kpi-sub{font-size:11px;color:var(--gris);margin-top:2px;opacity:.7;}
+
+/* SECCIÓN */
+.seccion{background:white;border-radius:14px;padding:20px 22px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.07);}
+.seccion-titulo{font-size:13px;font-weight:700;color:var(--azul);text-transform:uppercase;letter-spacing:.6px;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.seccion-titulo .emoji{font-size:16px;}
+
+/* BARRIOS GRID */
+.barrios-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+.barrio-card{border-radius:11px;padding:14px 16px;border:1.5px solid var(--borde);background:var(--fondo);position:relative;overflow:hidden;transition:transform .15s,box-shadow .15s;}
+.barrio-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1);}
+.barrio-card.critico{border-color:var(--rojo);background:var(--rojo-light);}
+.barrio-card.alerta{border-color:var(--amarillo);background:var(--amarillo-light);}
+.barrio-card.normal{border-color:var(--verde);background:var(--verde-light);}
+.barrio-nombre{font-weight:700;font-size:14px;color:#1e293b;margin-bottom:6px;}
+.barrio-stat{font-size:12px;color:var(--gris);display:flex;gap:6px;align-items:center;margin-top:3px;}
+.barrio-stat strong{color:#1e293b;}
+.barrio-pip{display:inline-block;width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.barrio-pip.r{background:var(--rojo);}
+.barrio-pip.a{background:var(--amarillo);}
+.barrio-pip.v{background:var(--verde);}
+.barrio-nivel{position:absolute;top:12px;right:12px;font-size:18px;}
+.barrio-necs{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;}
+.nec-tag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;background:rgba(0,0,0,.07);color:#334155;}
+
+/* NECESIDADES */
+.nec-lista{display:flex;flex-direction:column;gap:8px;}
+.nec-row{display:flex;align-items:center;gap:12px;}
+.nec-nombre{font-size:14px;font-weight:500;color:#1e293b;width:140px;flex-shrink:0;}
+.nec-bars{flex:1;display:flex;gap:4px;align-items:center;}
+.nec-bar-wrap{flex:1;height:8px;background:var(--gris-claro);border-radius:4px;overflow:hidden;}
+.nec-bar{height:100%;border-radius:4px;transition:width .6s ease;}
+.nec-bar.r{background:var(--rojo);}
+.nec-bar.a{background:var(--amarillo);}
+.nec-bar.v{background:var(--verde);}
+.nec-count{font-family:'DM Mono',monospace;font-size:11px;color:var(--gris);width:28px;text-align:right;}
+
+/* CASOS CRÍTICOS */
+.casos-tabla{width:100%;border-collapse:collapse;font-size:13px;}
+.casos-tabla th{text-align:left;padding:8px 12px;font-size:11px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--borde);}
+.casos-tabla td{padding:10px 12px;border-bottom:1px solid var(--gris-claro);vertical-align:top;}
+.casos-tabla tr:last-child td{border-bottom:none;}
+.casos-tabla tr:hover td{background:var(--fondo);}
+.nivel-chip{display:inline-block;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700;}
+.nivel-chip.alto{background:var(--rojo-light);color:var(--rojo);}
+.nivel-chip.medio{background:var(--amarillo-light);color:var(--amarillo);}
+.nivel-chip.bajo{background:var(--verde-light);color:var(--verde);}
+
+/* EXPORTAR */
+.export-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;}
+.select-barrio{padding:10px 14px;border:1.5px solid var(--borde);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:14px;color:#1e293b;background:white;min-width:220px;-webkit-appearance:none;appearance:none;}
+.btn-export{padding:10px 20px;background:var(--azul);color:white;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .15s;}
+.btn-export:hover{background:var(--azul2);}
+.btn-export.csv{background:var(--verde);}
+.btn-export.csv:hover{background:#15803d;}
+
+/* ÚLTIMOS REGISTROS */
+.registros-lista{display:flex;flex-direction:column;gap:8px;}
+.registro-item{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--fondo);border-radius:9px;font-size:13px;}
+.registro-hora{font-family:'DM Mono',monospace;font-size:11px;color:var(--gris);flex-shrink:0;width:100px;}
+.registro-nombre{font-weight:600;flex:1;}
+.registro-barrio{color:var(--gris);font-size:12px;}
+.registro-agente{font-size:11px;color:var(--gris);flex-shrink:0;}
+
+/* REFRESH */
+.btn-refresh{padding:8px 16px;background:transparent;border:1.5px solid rgba(255,255,255,.3);color:white;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s;display:flex;align-items:center;gap:6px;}
+.btn-refresh:hover{background:rgba(255,255,255,.1);}
+.btn-refresh.spinning svg{animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* FOOTER */
+.footer{background:var(--azul);color:white;padding:18px 24px;margin-top:40px;}
+.footer-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.footer-cem{font-size:12px;opacity:.6;}
+
+/* VACÍO */
+.vacio{text-align:center;padding:40px;color:var(--gris);font-size:14px;}
+
+@media(max-width:600px){
+  .header-inner{padding:14px 16px;}
+  .main{padding:16px 14px;}
+  .resumen-grid{grid-template-columns:1fr 1fr;}
+  .kpi-num{font-size:36px;}
+  .casos-tabla{font-size:12px;}
+  .casos-tabla th,.casos-tabla td{padding:8px 8px;}
+  .export-row{flex-direction:column;}
+  .select-barrio{width:100%;}
+}
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loading">
+  <div class="loading-logo">CEM ESQUINA</div>
+  <div class="loading-bar"><div class="loading-bar-inner"></div></div>
+  <div class="loading-txt">Cargando datos de emergencia...</div>
+</div>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <div class="header-logo">🌊 Emergencia Hídrica · Esquina</div>
+      <div class="header-sub">Centro Estadístico Municipal · Municipalidad de Esquina, Corrientes</div>
+    </div>
+    <span class="badge-alerta header-badge">En curso</span>
+    <span class="header-update" id="header-update">—</span>
+    <button class="btn-refresh" id="btn-refresh" onclick="cargarDatos()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+      Actualizar
+    </button>
+  </div>
+</div>
+
+<div class="error-banner" id="error-banner">
+  ⚠️ <span id="error-msg">No se pudieron cargar los datos. Verificá la conexión.</span>
+</div>
+
+<div class="main">
+
+  <!-- 1. KPIs -->
+  <div class="resumen-grid" id="kpi-grid">
+    <div class="kpi total"><div class="kpi-num" id="k-familias">—</div><div class="kpi-label">Familias relevadas</div></div>
+    <div class="kpi total"><div class="kpi-num" id="k-personas">—</div><div class="kpi-label">Personas afectadas</div></div>
+    <div class="kpi urgente"><div class="kpi-num" id="k-evacuados">—</div><div class="kpi-label">Evacuados</div></div>
+    <div class="kpi urgente"><div class="kpi-num" id="k-criticos">—</div><div class="kpi-label">Nivel alto</div><div class="kpi-sub">Situación crítica</div></div>
+    <div class="kpi media"><div class="kpi-num" id="k-discapacidad">—</div><div class="kpi-label">Con discapacidad</div><div class="kpi-sub">o cond. salud</div></div>
+    <div class="kpi ok"><div class="kpi-num" id="k-barrios">—</div><div class="kpi-label">Barrios relevados</div></div>
+  </div>
+
+  <!-- 2. BARRIOS -->
+  <div class="seccion">
+    <div class="seccion-titulo"><span class="emoji">🗺️</span> Situación por Barrio</div>
+    <div class="barrios-grid" id="barrios-grid">
+      <div class="vacio">Cargando...</div>
+    </div>
+  </div>
+
+  <!-- 3. NECESIDADES -->
+  <div class="seccion">
+    <div class="seccion-titulo"><span class="emoji">🆘</span> Necesidades Consolidadas</div>
+    <div class="nec-lista" id="nec-lista">
+      <div class="vacio">Cargando...</div>
+    </div>
+  </div>
+
+  <!-- 4. CASOS CRÍTICOS -->
+  <div class="seccion">
+    <div class="seccion-titulo"><span class="emoji">🔴</span> Casos que Requieren Atención</div>
+    <div style="overflow-x:auto">
+      <table class="casos-tabla" id="casos-tabla">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Barrio</th>
+            <th>Dirección</th>
+            <th>Nivel</th>
+            <th>Personas</th>
+            <th>Evacuado</th>
+            <th>Necesidades urgentes</th>
+            <th>Discapacidad</th>
+            <th>Teléfono</th>
+          </tr>
+        </thead>
+        <tbody id="casos-body">
+          <tr><td colspan="9" class="vacio">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 5. EXPORTAR POR BARRIO -->
+  <div class="seccion">
+    <div class="seccion-titulo"><span class="emoji">📋</span> Exportar Listado por Barrio</div>
+    <p style="font-size:13px;color:var(--gris);margin-bottom:14px;">Seleccioná un barrio para descargar el listado de domicilios para el operativo de campo.</p>
+    <div class="export-row">
+      <select class="select-barrio" id="select-export-barrio">
+        <option value="">— Todos los barrios —</option>
+      </select>
+      <button class="btn-export" onclick="exportarCSV()">
+        📥 Descargar CSV
+      </button>
+      <button class="btn-export csv" onclick="exportarImprimible()">
+        🖨️ Ver para imprimir
+      </button>
+    </div>
+  </div>
+
+  <!-- 6. ÚLTIMOS REGISTROS -->
+  <div class="seccion">
+    <div class="seccion-titulo"><span class="emoji">🕐</span> Últimos Registros</div>
+    <div class="registros-lista" id="ultimos-lista">
+      <div class="vacio">Cargando...</div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <div style="font-weight:700;font-size:13px;">Centro Estadístico Municipal</div>
+      <div class="footer-cem">Municipalidad de Esquina · Corrientes · Emergencia Hídrica 2025</div>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:11px;opacity:.4;" id="footer-ts">—</div>
+  </div>
+</footer>
+
+<!-- MODAL IMPRIMIBLE -->
+<div id="modal-print" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;overflow:auto;padding:20px;">
+  <div style="background:white;max-width:800px;margin:0 auto;border-radius:14px;overflow:hidden;">
+    <div style="background:var(--azul);color:white;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-weight:700;font-size:15px;" id="modal-titulo">Listado de domicilios</span>
+      <div style="display:flex;gap:10px;">
+        <button onclick="window.print()" style="padding:7px 14px;background:white;color:var(--azul);border:none;border-radius:7px;font-weight:700;cursor:pointer;font-size:13px;">🖨️ Imprimir</button>
+        <button onclick="cerrarModal()" style="padding:7px 14px;background:rgba(255,255,255,.2);color:white;border:none;border-radius:7px;cursor:pointer;font-size:13px;">✕ Cerrar</button>
+      </div>
+    </div>
+    <div id="modal-contenido" style="padding:20px;"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  CONFIGURACIÓN
+// ══════════════════════════════════════════════════════
+const SHEET_ID  = "1BRtkRocpeZUKwsuS-O3JJSH0cycxGOhiPCUDrFfKRQc";
+const SHEET_TAB = "Relevamiento";
+const URL_CSV   = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TAB)}`;
+
+// Índices de columnas (0-based, según orden del Apps Script)
+const COL = {
+  timestamp:0, fecha:1, nombre:2, dni:3, telefono:4, barrio:5, referencia:6,
+  menores:7, adultos:8, mayores:9, total:10,
+  discapacidad:11, discapacidad_detalle:12,
+  nivel:13, evacuado:14, donde:15,
+  danios:16, danios_otros:17,
+  nec_urgentes:18, nec_importantes:19, nec_pueden_esperar:20, otras_nec:21,
+  observaciones:22, lat:23, lng:24, precision:25, maps:26,
+  agente:27, area:28
+};
+
+const NEC_LABELS = {
+  alimentos:"Alimentos", agua:"Agua potable", colchon:"Colchón",
+  frazadas:"Frazadas", ropa:"Ropa", medicamentos:"Medicamentos",
+  limpieza:"Limpieza", higiene:"Higiene personal",
+  herramientas:"Herramientas", materiales:"Materiales obra"
+};
+
+let DATOS = [];
+
+// ══════════════════════════════════════════════════════
+//  CARGAR DATOS
+// ══════════════════════════════════════════════════════
+async function cargarDatos() {
+  const btn = document.getElementById("btn-refresh");
+  btn.classList.add("spinning");
+  try {
+    const res = await fetch(URL_CSV + "&t=" + Date.now());
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const txt = await res.text();
+    DATOS = parsearCSV(txt);
+    renderTodo();
+    const ahora = new Date().toLocaleTimeString("es-AR", {hour:"2-digit",minute:"2-digit"});
+    document.getElementById("header-update").textContent = "Actualizado " + ahora;
+    document.getElementById("footer-ts").textContent = new Date().toLocaleString("es-AR");
+    document.getElementById("error-banner").classList.remove("visible");
+  } catch(err) {
+    document.getElementById("error-banner").classList.add("visible");
+    document.getElementById("error-msg").textContent = "No se pudieron cargar los datos: " + err.message;
+  } finally {
+    btn.classList.remove("spinning");
+    document.getElementById("loading").classList.add("hidden");
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  PARSEAR CSV
+// ══════════════════════════════════════════════════════
+function parsearCSV(txt) {
+  const filas = [];
+  const lines = txt.split("\n");
+  // saltar encabezado (línea 0)
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    const cols = parsearLineaCSV(line);
+    if (cols.length > 3 && cols[COL.nombre]) filas.push(cols);
+  }
+  return filas;
+}
+
+function parsearLineaCSV(line) {
+  const result = [];
+  let cur = ""; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQ = !inQ; }
+    else if (c === ',' && !inQ) { result.push(cur.trim()); cur = ""; }
+    else cur += c;
+  }
+  result.push(cur.trim());
+  return result;
+}
+
+// ══════════════════════════════════════════════════════
+//  RENDER TODO
+// ══════════════════════════════════════════════════════
+function renderTodo() {
+  renderKPIs();
+  renderBarrios();
+  renderNecesidades();
+  renderCasosCriticos();
+  renderUltimos();
+  poblarSelectBarrio();
+}
+
+// ══════════════════════════════════════════════════════
+//  KPIs
+// ══════════════════════════════════════════════════════
+function renderKPIs() {
+  const familias = DATOS.length;
+  const personas = DATOS.reduce((s,r) => s + (parseInt(r[COL.total])||0), 0);
+  const evacuados = DATOS.filter(r => r[COL.evacuado].toLowerCase() === "si").length;
+  const criticos = DATOS.filter(r => r[COL.nivel].toLowerCase() === "alto").length;
+  const discap = DATOS.filter(r => r[COL.discapacidad].toLowerCase() === "si").length;
+  const barrios = new Set(DATOS.map(r => r[COL.barrio]).filter(Boolean)).size;
+
+  document.getElementById("k-familias").textContent = familias;
+  document.getElementById("k-personas").textContent = personas;
+  document.getElementById("k-evacuados").textContent = evacuados;
+  document.getElementById("k-criticos").textContent = criticos;
+  document.getElementById("k-discapacidad").textContent = discap;
+  document.getElementById("k-barrios").textContent = barrios;
+}
+
+// ══════════════════════════════════════════════════════
+//  BARRIOS
+// ══════════════════════════════════════════════════════
+function renderBarrios() {
+  const mapa = {};
+  DATOS.forEach(r => {
+    const b = r[COL.barrio] || "Sin barrio";
+    if (!mapa[b]) mapa[b] = { familias:0, personas:0, evacuados:0, alto:0, medio:0, bajo:0, necs:{} };
+    const m = mapa[b];
+    m.familias++;
+    m.personas += parseInt(r[COL.total])||0;
+    if (r[COL.evacuado].toLowerCase()==="si") m.evacuados++;
+    const niv = r[COL.nivel].toLowerCase();
+    if (niv==="alto") m.alto++;
+    else if (niv==="medio") m.medio++;
+    else m.bajo++;
+    // acumular necesidades urgentes
+    (r[COL.nec_urgentes]||"").split(",").forEach(n => {
+      const k = n.trim();
+      if (k) m.necs[k] = (m.necs[k]||0) + 1;
+    });
+  });
+
+  const sorted = Object.entries(mapa).sort((a,b) => b[1].alto - a[1].alto || b[1].medio - a[1].medio);
+  const grid = document.getElementById("barrios-grid");
+
+  if (!sorted.length) { grid.innerHTML = '<div class="vacio">Sin datos aún</div>'; return; }
+
+  grid.innerHTML = sorted.map(([barrio, d]) => {
+    const cls = d.alto > 0 ? "critico" : d.medio > 0 ? "alerta" : "normal";
+    const icono = d.alto > 0 ? "⚠️" : d.medio > 0 ? "🌊" : "✅";
+    const topNecs = Object.entries(d.necs).sort((a,b)=>b[1]-a[1]).slice(0,3)
+      .map(([k]) => `<span class="nec-tag">${NEC_LABELS[k]||k}</span>`).join("");
+    return `<div class="barrio-card ${cls}">
+      <div class="barrio-nivel">${icono}</div>
+      <div class="barrio-nombre">${barrio}</div>
+      <div class="barrio-stat"><span class="barrio-pip ${cls==='critico'?'r':cls==='alerta'?'a':'v'}"></span><strong>${d.familias}</strong> familias · <strong>${d.personas}</strong> personas</div>
+      ${d.evacuados ? `<div class="barrio-stat">🚨 <strong>${d.evacuados}</strong> evacuados</div>` : ""}
+      ${topNecs ? `<div class="barrio-necs">${topNecs}</div>` : ""}
+    </div>`;
+  }).join("");
+}
+
+// ══════════════════════════════════════════════════════
+//  NECESIDADES
+// ══════════════════════════════════════════════════════
+function renderNecesidades() {
+  const urgentes = {}, importantes = {}, pueden = {};
+
+  DATOS.forEach(r => {
+    const proc = (col, obj) => {
+      (r[col]||"").split(",").forEach(n => {
+        const k = n.trim(); if (k) obj[k] = (obj[k]||0) + 1;
+      });
+    };
+    proc(COL.nec_urgentes, urgentes);
+    proc(COL.nec_importantes, importantes);
+    proc(COL.nec_pueden_esperar, pueden);
+  });
+
+  // Unir todas las necesidades
+  const todas = new Set([...Object.keys(urgentes), ...Object.keys(importantes), ...Object.keys(pueden)]);
+  const maxVal = Math.max(1, ...Object.values(urgentes), ...Object.values(importantes), ...Object.values(pueden));
+
+  const lista = document.getElementById("nec-lista");
+  if (!todas.size) { lista.innerHTML = '<div class="vacio">Sin datos aún</div>'; return; }
+
+  const items = [...todas].map(k => ({
+    k, u: urgentes[k]||0, i: importantes[k]||0, p: pueden[k]||0,
+    total: (urgentes[k]||0)+(importantes[k]||0)+(pueden[k]||0)
+  })).sort((a,b) => b.u - a.u || b.total - a.total);
+
+  lista.innerHTML = items.map(({k,u,i,p}) => `
+    <div class="nec-row">
+      <div class="nec-nombre">${NEC_LABELS[k]||k}</div>
+      <div class="nec-bars">
+        <div class="nec-bar-wrap" title="Urgente: ${u}"><div class="nec-bar r" style="width:${u/maxVal*100}%"></div></div>
+        <div class="nec-bar-wrap" title="Importante: ${i}"><div class="nec-bar a" style="width:${i/maxVal*100}%"></div></div>
+        <div class="nec-bar-wrap" title="Puede esperar: ${p}"><div class="nec-bar v" style="width:${p/maxVal*100}%"></div></div>
+      </div>
+      <div class="nec-count">${u+i+p}</div>
+    </div>`).join("");
+}
+
+// ══════════════════════════════════════════════════════
+//  CASOS CRÍTICOS
+// ══════════════════════════════════════════════════════
+function renderCasosCriticos() {
+  const criticos = DATOS.filter(r =>
+    r[COL.nivel].toLowerCase()==="alto" ||
+    r[COL.evacuado].toLowerCase()==="si" ||
+    (r[COL.nec_urgentes]||"").trim() !== "" ||
+    r[COL.discapacidad].toLowerCase()==="si"
+  ).sort((a,b) => {
+    const score = r => (r[COL.nivel].toLowerCase()==="alto"?3:0) + (r[COL.evacuado].toLowerCase()==="si"?2:0) + ((r[COL.nec_urgentes]||"").trim()?1:0);
+    return score(b) - score(a);
+  });
+
+  const body = document.getElementById("casos-body");
+  if (!criticos.length) {
+    body.innerHTML = '<tr><td colspan="9" class="vacio">Sin casos críticos registrados</td></tr>';
+    return;
+  }
+
+  body.innerHTML = criticos.map(r => {
+    const niv = r[COL.nivel].toLowerCase();
+    const chip = `<span class="nivel-chip ${niv}">${r[COL.nivel]||"—"}</span>`;
+    const maps = r[COL.lat] ? `<a href="https://maps.google.com/?q=${r[COL.lat]},${r[COL.lng]}" target="_blank" style="color:var(--azul2);font-size:11px;">📍 Ver</a>` : "";
+    return `<tr>
+      <td><strong>${r[COL.nombre]||"—"}</strong></td>
+      <td>${r[COL.barrio]||"—"}</td>
+      <td style="font-size:12px;">${r[COL.referencia]||"—"} ${maps}</td>
+      <td>${chip}</td>
+      <td>${r[COL.total]||"—"}</td>
+      <td>${r[COL.evacuado]==="si"?"🚨 Sí":"No"}</td>
+      <td style="font-size:12px;color:var(--rojo);">${r[COL.nec_urgentes]||"—"}</td>
+      <td style="font-size:12px;">${r[COL.discapacidad]==="si"?`⚠️ ${r[COL.discapacidad_detalle]||"Sí"}`:"—"}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px;">${r[COL.telefono]||"—"}</td>
+    </tr>`;
+  }).join("");
+}
+
+// ══════════════════════════════════════════════════════
+//  ÚLTIMOS REGISTROS
+// ══════════════════════════════════════════════════════
+function renderUltimos() {
+  const ultimos = [...DATOS].reverse().slice(0, 10);
+  const lista = document.getElementById("ultimos-lista");
+  if (!ultimos.length) { lista.innerHTML = '<div class="vacio">Sin registros aún</div>'; return; }
+  lista.innerHTML = ultimos.map(r => {
+    const hora = r[COL.fecha] ? r[COL.fecha].split("—")[1]?.trim() || r[COL.fecha] : "—";
+    const niv = r[COL.nivel].toLowerCase();
+    const col = niv==="alto"?"var(--rojo)":niv==="medio"?"var(--amarillo)":"var(--verde)";
+    return `<div class="registro-item">
+      <div class="registro-hora">${hora}</div>
+      <div style="width:8px;height:8px;border-radius:50%;background:${col};flex-shrink:0;"></div>
+      <div class="registro-nombre">${r[COL.nombre]||"—"}</div>
+      <div class="registro-barrio">${r[COL.barrio]||"—"}</div>
+      <div class="registro-agente">${r[COL.agente]||"—"}</div>
+    </div>`;
+  }).join("");
+}
+
+// ══════════════════════════════════════════════════════
+//  SELECT BARRIO
+// ══════════════════════════════════════════════════════
+function poblarSelectBarrio() {
+  const barrios = [...new Set(DATOS.map(r => r[COL.barrio]).filter(Boolean))].sort();
+  const sel = document.getElementById("select-export-barrio");
+  sel.innerHTML = '<option value="">— Todos los barrios —</option>' +
+    barrios.map(b => `<option value="${b}">${b}</option>`).join("");
+}
+
+// ══════════════════════════════════════════════════════
+//  EXPORTAR CSV
+// ══════════════════════════════════════════════════════
+function exportarCSV() {
+  const barrio = document.getElementById("select-export-barrio").value;
+  const filtrados = barrio ? DATOS.filter(r => r[COL.barrio] === barrio) : DATOS;
+  if (!filtrados.length) { alert("No hay datos para exportar."); return; }
+
+  const encabezados = ["Nombre","Barrio","Dirección","Teléfono","Nivel agua","Evacuado","Total personas","Necesidades urgentes","Observaciones","Agente"];
+  const filas = filtrados.map(r => [
+    r[COL.nombre], r[COL.barrio], r[COL.referencia], r[COL.telefono],
+    r[COL.nivel], r[COL.evacuado], r[COL.total],
+    r[COL.nec_urgentes], r[COL.observaciones], r[COL.agente]
+  ].map(v => `"${(v||"").replace(/"/g,'""')}"`).join(","));
+
+  const csv = [encabezados.join(","), ...filas].join("\n");
+  const blob = new Blob(["\uFEFF"+csv], {type:"text/csv;charset=utf-8;"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `relevamiento_${barrio||"todos"}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// ══════════════════════════════════════════════════════
+//  EXPORTAR IMPRIMIBLE
+// ══════════════════════════════════════════════════════
+function exportarImprimible() {
+  const barrio = document.getElementById("select-export-barrio").value;
+  const filtrados = barrio ? DATOS.filter(r => r[COL.barrio] === barrio) : DATOS;
+  if (!filtrados.length) { alert("No hay datos para mostrar."); return; }
+
+  document.getElementById("modal-titulo").textContent =
+    `Listado: ${barrio||"Todos los barrios"} · ${filtrados.length} domicilios`;
+
+  const tabla = `
+    <div style="font-family:'DM Sans',sans-serif;font-size:13px;">
+      <div style="margin-bottom:16px;color:#64748b;font-size:12px;">
+        Municipalidad de Esquina · CEM · Emergencia Hídrica 2025 · 
+        Generado: ${new Date().toLocaleString("es-AR")}
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="background:#1a3a5c;color:white;">
+            <th style="padding:8px;text-align:left;">#</th>
+            <th style="padding:8px;text-align:left;">Nombre</th>
+            <th style="padding:8px;text-align:left;">Barrio</th>
+            <th style="padding:8px;text-align:left;">Dirección</th>
+            <th style="padding:8px;text-align:left;">Tel.</th>
+            <th style="padding:8px;text-align:left;">Nivel</th>
+            <th style="padding:8px;text-align:left;">Personas</th>
+            <th style="padding:8px;text-align:left;">Necesidades urgentes</th>
+            <th style="padding:8px;text-align:left;">Agente</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filtrados.map((r,i) => `
+            <tr style="background:${i%2===0?'white':'#f8fafc'};border-bottom:1px solid #e2e8f0;">
+              <td style="padding:7px 8px;color:#64748b;">${i+1}</td>
+              <td style="padding:7px 8px;font-weight:600;">${r[COL.nombre]||"—"}</td>
+              <td style="padding:7px 8px;">${r[COL.barrio]||"—"}</td>
+              <td style="padding:7px 8px;">${r[COL.referencia]||"—"}</td>
+              <td style="padding:7px 8px;font-family:monospace;">${r[COL.telefono]||"—"}</td>
+              <td style="padding:7px 8px;color:${r[COL.nivel].toLowerCase()==='alto'?'#dc2626':r[COL.nivel].toLowerCase()==='medio'?'#d97706':'#16a34a'};font-weight:700;">${r[COL.nivel]||"—"}</td>
+              <td style="padding:7px 8px;">${r[COL.total]||"—"}</td>
+              <td style="padding:7px 8px;color:#dc2626;font-size:11px;">${r[COL.nec_urgentes]||"—"}</td>
+              <td style="padding:7px 8px;font-size:11px;">${r[COL.agente]||"—"}</td>
+            </tr>`).join("")}
+        </tbody>
+      </table>
+    </div>`;
+
+  document.getElementById("modal-contenido").innerHTML = tabla;
+  document.getElementById("modal-print").style.display = "block";
+}
+
+function cerrarModal() {
+  document.getElementById("modal-print").style.display = "none";
+}
+
+// ══════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════
+cargarDatos();
+// Auto-refresh cada 2 minutos
+setInterval(cargarDatos, 120000);
+</script>
+</body>
+</html>
